@@ -27,3 +27,6 @@ conda create --name sdtprojectenv python=3.11
 conda activate sdtprojectenv
 pip install -r requirements.txt
 streamlit run app.py
+
+##Web app URL
+https://sdt-project4.onrender.com/
