@@ -5,66 +5,64 @@ import plotly.express as px
 # Load data
 df = pd.read_csv('vehicles_us.csv')
 
-st.subheader("📊 Current Selection Overview")
-st.write(f"Showing {filtered_df.shape[0]:,} listings based on selected filters.")
-
+# Page config
+st.set_page_config(page_title="Car Sales Dashboard", layout="wide")
 
 # App title
-st.title("🚗 Car Sales Dashboard")
+st.title("🚗 U.S. Car Sales Dashboard")
 
-# Header
-st.header("Distribution of Car Prices")
+st.markdown("Explore car sales listings with interactive filters and visualizations. Use the sidebar to narrow results by vehicle type, condition, and price range.")
 
-st.sidebar.header("Filter Listings")
+# Sidebar filters
+st.sidebar.header("🔍 Filter Listings")
 
-# Filter by car type
+# Type filter
 car_types = df['type'].dropna().unique()
-selected_types = st.sidebar.multiselect("Select car types", car_types, default=car_types)
+selected_types = st.sidebar.multiselect("Select car types", sorted(car_types), default=car_types)
 
-# Filter by condition
+# Condition filter
 conditions = df['condition'].dropna().unique()
-selected_conditions = st.sidebar.multiselect("Select conditions", conditions, default=conditions)
+selected_conditions = st.sidebar.multiselect("Select conditions", sorted(conditions), default=conditions)
 
-# Apply filters
-filtered_df = df[
-    (df['type'].isin(selected_types)) &
-    (df['condition'].isin(selected_conditions))
-]
-
+# Price range slider
 min_price, max_price = st.sidebar.slider(
-    "Select price range",
+    "Select price range ($)",
     int(df['price'].min()), int(df['price'].max()),
     (int(df['price'].min()), int(df['price'].max()))
 )
 
-# Update the filtered DataFrame
-filtered_df = filtered_df[
-    (filtered_df['price'] >= min_price) & (filtered_df['price'] <= max_price)
+# Filter dataset
+filtered_df = df[
+    (df['type'].isin(selected_types)) &
+    (df['condition'].isin(selected_conditions)) &
+    (df['price'] >= min_price) &
+    (df['price'] <= max_price)
 ]
 
+# Summary stats
+st.subheader("📊 Current Selection Overview")
+st.write(f"Showing **{filtered_df.shape[0]:,}** listings")
 
-# Histogram of car prices
-fig_price = px.histogram(df, x='price', nbins=50, title="Price Distribution")
-st.plotly_chart(fig_price)
+# Layout with two columns
+col1, col2 = st.columns(2)
 
-fig_price = px.histogram(filtered_df, x='price', nbins=50, title="Price Distribution")
+with col1:
+    st.subheader("💲 Price Distribution")
+    fig_price = px.histogram(filtered_df, x='price', nbins=50)
+    st.plotly_chart(fig_price, use_container_width=True)
 
+with col2:
+    st.subheader("📍 Odometer vs Price")
+    fig_scatter = px.scatter(filtered_df, x='odometer', y='price', color='condition')
+    st.plotly_chart(fig_scatter, use_container_width=True)
 
-# Header
-st.header("Odometer vs Price")
+# Optional checkbox for more
+if st.checkbox("📦 Show Price by Vehicle Condition"):
+    st.subheader("🛠️ Price by Condition")
+    fig_box = px.box(filtered_df, x='condition', y='price', color='condition')
+    st.plotly_chart(fig_box, use_container_width=True)
 
-# Scatter plot
-fig_scatter = px.scatter(df, x='odometer', y='price', title="Odometer Reading vs Price")
-st.plotly_chart(fig_scatter)
-
-fig_scatter = px.scatter(filtered_df, x='odometer', y='price', title="Odometer vs Price")
-
-
-# Checkbox to show condition-based price box plot
-if st.checkbox("Show price distribution by condition"):
-    st.header("Price Distribution by Condition")
-    fig_box = px.box(df, x='condition', y='price', title="Price by Vehicle Condition")
-    st.plotly_chart(fig_box)
-
+# Footer
 st.markdown("---")
-st.caption("Made with ❤️ by miatho25 · [View on GitHub](https://github.com/miatho25/SDT-project4)")
+st.caption("Made with ❤️ by miatho25 · [GitHub Repo](https://github.com/miatho25/SDT-project4)")
+
